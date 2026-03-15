@@ -7,14 +7,12 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	s := http.Server{
+	mux.Handle("/", http.FileServer(http.Dir(".")))
+	s := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
 	}
 
 	log.Println("Server running on port", s.Addr)
-	err := s.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(s.ListenAndServe())
 }
