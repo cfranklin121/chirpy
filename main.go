@@ -6,13 +6,24 @@ import (
 )
 
 func main() {
+	const filePath = "."
+	const port = "8080"
+
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir(filePath))))
+	mux.HandleFunc("/", chirpyHandler)
+
 	s := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: mux,
 	}
 
-	log.Println("Server running on port", s.Addr)
+	log.Println("Server running on port", port)
 	log.Fatal(s.ListenAndServe())
+}
+
+func chirpyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
