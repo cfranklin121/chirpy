@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync/atomic"
 )
 
@@ -77,7 +78,7 @@ func handlerValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type returnVal struct {
-		Valid bool `json:"valid"`
+		Cleaned_body string `json:"cleaned_body"`
 	}
 
 	dat, err := io.ReadAll(r.Body)
@@ -100,8 +101,9 @@ func handlerValidate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("%s %s", r.Method, r.URL.Path)
+	cleaned := cleanString(reqBody.Body)
 	respondWithJSON(w, 200, returnVal{
-		Valid: true,
+		Cleaned_body: cleaned,
 	})
 }
 
@@ -119,4 +121,21 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 
 func respondWithError(w http.ResponseWriter, code int, msg string) error {
 	return respondWithJSON(w, code, map[string]string{"error": msg})
+}
+
+func cleanString(str string) string {
+	slice := strings.Split(str, " ")
+	newStr := []string{}
+	for _, word := range slice {
+		switch strings.ToLower(word) {
+		case "kerfuffle":
+			word = "****"
+		case "sharbert":
+			word = "****"
+		case "fornax":
+			word = "****"
+		}
+		newStr = append(newStr, word)
+	}
+	return strings.Join(newStr, " ")
 }
