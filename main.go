@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync/atomic"
@@ -50,6 +52,7 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
+	mux.HandleFunc("POST /api/validate_chirp", handlerValidate)
 
 	s := &http.Server{
 		Addr:    ":" + port,
@@ -65,4 +68,55 @@ func handlerReadiness(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(http.StatusText(http.StatusOK)))
+}
+
+func handlerValidate(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	type RequestBody struct {
+		Body string `json:"body"`
+	}
+
+	type returnVal struct {
+		Valid bool `json:"valid"`
+	}
+
+	dat, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		respondWithError(w, 500, "Could not read data")
+		return
+	}
+
+	reqBody := RequestBody{}
+	err = json.Unmarshal(dat, &reqBody)
+	if err != nil {
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		respondWithError(w, 500, "Could not unmarshal JSON")
+		return
+	}
+
+	if len(reqBody.Body) > 140 {
+		respondWithError(w, 400, "Chirp is too long")
+		return
+	}
+	log.Printf("%s %s", r.Method, r.URL.Path)
+	respondWithJSON(w, 200, returnVal{
+		Valid: true,
+	})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error {
+	response, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+	return nil
+}
+
+func respondWithError(w http.ResponseWriter, code int, msg string) error {
+	return respondWithJSON(w, code, map[string]string{"error": msg})
 }
