@@ -33,7 +33,7 @@ out
 *.http
 
 # .idea/
-# .vscode/
+.vscode/
 
 # Other
 notes.txt

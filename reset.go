@@ -6,6 +6,14 @@ import (
 )
 
 func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
+	if cfg.platform != "dev" {
+		respondWithError(w, 403, "403 Forbidden")
+		return
+	}
+	err := cfg.db.Reset(r.Context())
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+	}
 	cfg.fileserverHits.Store(0)
 	log.Printf("%s %s", r.Method, r.URL.Path)
 	w.WriteHeader(http.StatusOK)
