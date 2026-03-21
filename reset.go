@@ -7,7 +7,8 @@ import (
 
 func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 	if cfg.platform != "dev" {
-		respondWithError(w, 403, "403 Forbidden")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Forbidden"))
 		return
 	}
 	err := cfg.db.Reset(r.Context())

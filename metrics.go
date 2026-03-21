@@ -8,6 +8,7 @@ import (
 
 func (cfg *apiConfig) handlerMetrics(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL.Path)
+	log.Printf("Hits: %d\n", cfg.fileserverHits.Load())
 	w.Header().Add("Content-type", "text/html")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`

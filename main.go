@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
-	"time"
 
 	"github.com/cfranklin121/chirpy/internal/database"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -20,20 +18,13 @@ type apiConfig struct {
 	platform       string
 }
 
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
-}
-
 func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
-	envPlat := os.Getenv("PLATFORM")
+	platform := os.Getenv("PLATFORM")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("%s", err)
@@ -43,7 +34,7 @@ func main() {
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
 		db:             dbQueries,
-		platform:       envPlat,
+		platform:       platform,
 	}
 
 	mux := http.NewServeMux()
