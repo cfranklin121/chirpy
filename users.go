@@ -16,13 +16,17 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
+	Password  string    `json:"-"`
 }
 
 func (cfg *apiConfig) handlerUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	type RequestBody struct {
-		Email    string `json:"email"`
 		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+	type ReturnVal struct {
+		User
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -49,14 +53,14 @@ func (cfg *apiConfig) handlerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userMain := User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
-	}
-
 	log.Printf("%s %s", r.Method, r.URL.Path)
-	respondWithJSON(w, 201, userMain)
+	respondWithJSON(w, 201, ReturnVal{
+		User: User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
+		},
+	})
 
 }
