@@ -10,7 +10,7 @@ import (
 )
 
 const reset = `-- name: Reset :exec
-DELETE FROM chirps
+DELETE FROM users
 `
 
 func (q *Queries) Reset(ctx context.Context) error {
