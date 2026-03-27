@@ -25,4 +25,4 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 	return signed, nil
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error)
+// func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error)

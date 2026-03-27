@@ -11,7 +11,11 @@ func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Forbidden"))
 		return
 	}
-	err := cfg.db.Reset(r.Context())
+	err := cfg.db.ResetChirps(r.Context())
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+	}
+	err = cfg.db.ResetUsers(r.Context())
 	if err != nil {
 		respondWithError(w, 500, err.Error())
 	}
