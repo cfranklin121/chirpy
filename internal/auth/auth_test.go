@@ -1,10 +1,8 @@
-package main
+package auth
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/cfranklin121/chirpy/internal/auth"
 )
 
 func TestAuth(t *testing.T) {
@@ -33,7 +31,7 @@ func TestAuth(t *testing.T) {
 	hashes := []string{}
 	for _, c := range cases {
 		fmt.Println("Input:", c.input)
-		result, err := auth.HashPassword(c.input)
+		result, err := HashPassword(c.input)
 		fmt.Println("Result:", result)
 		hashes = append(hashes, result)
 		if err != nil {
@@ -44,7 +42,7 @@ func TestAuth(t *testing.T) {
 	fmt.Println("--------------------------------------")
 
 	for i, c := range cases {
-		match, err := auth.CheckPasswordHash(c.input, hashes[i])
+		match, err := CheckPasswordHash(c.input, hashes[i])
 		if match {
 			fmt.Println("Match")
 		}
