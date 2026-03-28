@@ -12,7 +12,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("Authorization", "")
 	w.WriteHeader(code)
 	w.Write(response)
 	return nil
