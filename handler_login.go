@@ -28,6 +28,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Could not decode")
 		return
 	}
+	log.Println(reqBody)
 	if reqBody.ExpiresIn == 0 {
 		reqBody.ExpiresIn = 60
 	}

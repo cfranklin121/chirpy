@@ -37,6 +37,7 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Could not decode JSON")
 		return
 	}
+	log.Println(reqBody)
 
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -44,7 +45,7 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = auth.ValidateJWT(token, cfg.secret)
+	user_id, err := auth.ValidateJWT(token, cfg.secret)
 	if err != nil {
 		respondWithError(w, 401, err.Error())
 		return
@@ -60,7 +61,7 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 
 	params := database.CreateChirpParams{
 		Body:   reqBody.Body,
-		UserID: reqBody.UserId,
+		UserID: user_id,
 	}
 	chirp, err := cfg.db.CreateChirp(r.Context(), params)
 	if err != nil {

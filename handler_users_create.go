@@ -37,10 +37,12 @@ func (cfg *apiConfig) handlerUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Could not decode")
 		return
 	}
+	log.Println(reqBody)
 
 	hash, err := auth.HashPassword(reqBody.Password)
 	if err != nil {
 		respondWithError(w, 500, "Could not hash password")
+		return
 	}
 
 	params := database.CreateUserParams{
