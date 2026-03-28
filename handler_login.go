@@ -28,9 +28,10 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Could not decode")
 		return
 	}
+	expirationTime := time.Hour
 	log.Println(reqBody)
-	if reqBody.ExpiresIn == 0 {
-		reqBody.ExpiresIn = 60
+	if reqBody.ExpiresIn > 0 && reqBody.ExpiresIn < 3600 {
+		expirationTime = time.Duration(reqBody.ExpiresIn) * time.Second
 	}
 
 	user, err := cfg.db.GetUser(r.Context(), reqBody.Email)
@@ -50,7 +51,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(reqBody.ExpiresIn))
+	token, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(expirationTime))
 
 	respondWithJSON(w, 200, ReturnVal{
 		User: User{
