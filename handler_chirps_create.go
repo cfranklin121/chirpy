@@ -15,8 +15,7 @@ import (
 func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	type RequestBody struct {
-		Body   string    `json:"body"`
-		UserId uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	type Params struct {
