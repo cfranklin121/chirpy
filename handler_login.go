@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/cfranklin121/chirpy/internal/auth"
 )
@@ -12,8 +13,9 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	log.Printf("%s %s", r.Method, r.URL.Path)
 	type RequestBody struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
+		Password  string `json:"password"`
+		Email     string `json:"email"`
+		ExpiresIn int    `json:"expires_in_seconds"`
 	}
 	type ReturnVal struct {
 		User
@@ -25,6 +27,9 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, 500, "Could not decode")
 		return
+	}
+	if reqBody.ExpiresIn == 0 {
+		reqBody.ExpiresIn = 60
 	}
 
 	user, err := cfg.db.GetUser(r.Context(), reqBody.Email)
@@ -44,12 +49,15 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(reqBody.ExpiresIn))
+
 	respondWithJSON(w, 200, ReturnVal{
 		User: User{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			Email:     user.Email,
+			Token:     token,
 		},
 	})
 

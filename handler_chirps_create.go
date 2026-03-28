@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cfranklin121/chirpy/internal/auth"
 	"github.com/cfranklin121/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -25,6 +26,7 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		Body      string    `json:"body"`
 		UserId    uuid.UUID `json:"user_id"`
 	}
+	log.Printf("%s %s", r.Method, r.URL.Path)
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -36,11 +38,23 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 401, err.Error())
+		return
+	}
+
+	_, err = auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		respondWithError(w, 401, err.Error())
+		return
+	}
+
 	if len(reqBody.Body) > 140 {
 		respondWithError(w, 400, "Chirp is too long")
 		return
 	}
-	log.Printf("%s %s", r.Method, r.URL.Path)
+
 	cleaned := cleanString(reqBody.Body)
 	reqBody.Body = cleaned
 
