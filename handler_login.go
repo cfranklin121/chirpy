@@ -13,9 +13,8 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	log.Printf("%s %s", r.Method, r.URL.Path)
 	type RequestBody struct {
-		Password  string `json:"password"`
-		Email     string `json:"email"`
-		ExpiresIn int    `json:"expires_in_seconds"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 	type ReturnVal struct {
 		User
@@ -30,9 +29,8 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	expirationTime := time.Hour
 	log.Println(reqBody)
-	if reqBody.ExpiresIn > 0 && reqBody.ExpiresIn < 3600 {
-		expirationTime = time.Duration(reqBody.ExpiresIn) * time.Second
-	}
+
+	expirationTime = time.Duration(60) * time.Second
 
 	user, err := cfg.db.GetUser(r.Context(), reqBody.Email)
 	if err != nil {
