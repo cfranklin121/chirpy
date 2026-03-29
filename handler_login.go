@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cfranklin121/chirpy/internal/auth"
+	"github.com/cfranklin121/chirpy/internal/database"
 )
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -49,15 +50,32 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(expirationTime))
+	accessToken, err := auth.MakeJWT(user.ID, cfg.secret, time.Duration(expirationTime))
+	if err != nil {
+		respondWithError(w, 500, "Could not create access token")
+		return
+	}
+
+	refreshParams := database.CreateRefreshTokenParams{
+		Token:     auth.MakeRefreshToken(),
+		UserID:    user.ID,
+		ExpiresAt: time.Now().Add(time.Duration(1440) * time.Hour),
+	}
+
+	refreshToken, err := cfg.db.CreateRefreshToken(r.Context(), refreshParams)
+	if err != nil {
+		respondWithError(w, 500, "Could not create refresh token")
+		return
+	}
 
 	respondWithJSON(w, 200, ReturnVal{
 		User: User{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
-			Token:     token,
+			ID:           user.ID,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+			Email:        user.Email,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken.Token,
 		},
 	})
 
