@@ -14,11 +14,14 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	log.Printf("%s %s", r.Method, r.URL.Path)
 	type RequestBody struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
+		Password string      `json:"password"`
+		Email    string      `json:"email"`
+		Header   http.Header `json:"header"` //DEBUG
 	}
 	type ReturnVal struct {
 		User
+		AccessToken  string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -31,7 +34,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	expirationTime := time.Hour
 	log.Println(reqBody)
 
-	expirationTime = time.Duration(60) * time.Second
+	expirationTime = time.Duration(3600) * time.Second
 
 	user, err := cfg.db.GetUser(r.Context(), reqBody.Email)
 	if err != nil {
@@ -68,15 +71,16 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Header:", reqBody.Header) //DEBUG
 	respondWithJSON(w, 200, ReturnVal{
 		User: User{
-			ID:           user.ID,
-			CreatedAt:    user.CreatedAt,
-			UpdatedAt:    user.UpdatedAt,
-			Email:        user.Email,
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken.Token,
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
 		},
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken.Token,
 	})
 
 }
