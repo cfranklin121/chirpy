@@ -11,6 +11,7 @@ import (
 func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	authorization := r.Header.Get("Authorization")
 	if authorization == "" {
+		respondWithError(w, 500, "Invalid authorization")
 		return
 	}
 
@@ -22,6 +23,7 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 
 	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), tknstrng[1])
 	if err != nil {
+		respondWithError(w, 500, "Could not get refresh token")
 		return
 	}
 
