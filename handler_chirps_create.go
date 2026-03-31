@@ -50,6 +50,17 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), token)
+	if err != nil {
+		respondWithError(w, 401, "Invalid token")
+		return
+	}
+
+	if refresh_token.RevokedAt.Valid {
+		respondWithError(w, 401, "Token has been revoked")
+		return
+	}
+
 	if len(reqBody.Body) > 140 {
 		respondWithError(w, 400, "Chirp is too long")
 		return

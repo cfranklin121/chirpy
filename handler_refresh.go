@@ -27,8 +27,17 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Get user from refresh token
+	if refresh_token.RevokedAt.Valid {
+		respondWithError(w, 401, "Token has been revoked")
+		return
+	}
+
 	userID, err := cfg.db.GetUserFromRefreshToken(r.Context(), refresh_token.Token)
+
+	if refresh_token.RevokedAt.Valid {
+		respondWithError(w, 401, "Token has been revoked")
+		return
+	}
 
 	expirationTime := time.Hour
 	expirationTime = time.Duration(60) * time.Second
