@@ -2,22 +2,17 @@ package main
 
 import (
 	"net/http"
-	"strings"
+
+	"github.com/cfranklin121/chirpy/internal/auth"
 )
 
 func (cfg *apiConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
-	authorization := r.Header.Get("Authorization")
-	if authorization == "" {
-		respondWithError(w, 500, "Invalid authorization")
-		return
-	}
+	refreshTokenString, err := auth.GetBearerToken(r.Header)
 
 	type ReturnVal struct {
 	}
 
-	tknstrng := strings.Split(authorization, " ")
-
-	_, err := cfg.db.RevokeToken(r.Context(), tknstrng[1])
+	_, err = cfg.db.RevokeToken(r.Context(), refreshTokenString)
 	if err != nil {
 		respondWithError(w, 500, "Failed to revoke token")
 		return
