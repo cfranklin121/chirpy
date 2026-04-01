@@ -16,9 +16,11 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
+	Password  string    `json:"-"`
 }
 
 func (cfg *apiConfig) handlerUser(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s %s", r.Method, r.URL.Path)
 	defer r.Body.Close()
 	type RequestBody struct {
 		Password string `json:"password"`
@@ -54,7 +56,6 @@ func (cfg *apiConfig) handlerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("%s %s", r.Method, r.URL.Path)
 	respondWithJSON(w, 201, ReturnVal{
 		User: User{
 			ID:        user.ID,
