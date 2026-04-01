@@ -50,7 +50,7 @@ func (cfg *apiConfig) handlerChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), token)
+	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), user_id)
 	if err != nil {
 		respondWithError(w, 401, "Invalid token")
 		return

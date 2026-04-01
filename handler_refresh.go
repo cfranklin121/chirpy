@@ -16,12 +16,13 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type ReturnVal struct {
-		Token string
+		AccessToken string `json:"token"`
 	}
 
 	tknstrng := strings.Split(authorization, " ")
+	userID, err := cfg.db.GetUserFromRefreshToken(r.Context(), tknstrng[1])
 
-	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), tknstrng[1])
+	refresh_token, err := cfg.db.GetRefreshToken(r.Context(), userID.ID)
 	if err != nil {
 		respondWithError(w, 500, "Could not get refresh token")
 		return
@@ -31,8 +32,6 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 401, "Token has been revoked")
 		return
 	}
-
-	userID, err := cfg.db.GetUserFromRefreshToken(r.Context(), refresh_token.Token)
 
 	if refresh_token.RevokedAt.Valid {
 		respondWithError(w, 401, "Token has been revoked")
@@ -49,6 +48,6 @@ func (cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, 200, ReturnVal{
-		Token: accessToken,
+		AccessToken: accessToken,
 	})
 }

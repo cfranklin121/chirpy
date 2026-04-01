@@ -14,9 +14,8 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	log.Printf("%s %s", r.Method, r.URL.Path)
 	type RequestBody struct {
-		Password string      `json:"password"`
-		Email    string      `json:"email"`
-		Header   http.Header `json:"header"` //DEBUG
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 	type ReturnVal struct {
 		User
@@ -71,7 +70,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Header:", reqBody.Header) //DEBUG
 	respondWithJSON(w, 200, ReturnVal{
 		User: User{
 			ID:        user.ID,
