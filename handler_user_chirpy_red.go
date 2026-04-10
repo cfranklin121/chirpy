@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/cfranklin121/chirpy/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -29,6 +30,17 @@ func (cfg *apiConfig) handlerUpgradeChirpyRed(w http.ResponseWriter, r *http.Req
 
 	if reqBody.Event != "user.upgraded" {
 		respondWithJSON(w, http.StatusNoContent, ReturnVal{})
+		return
+	}
+
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if apiKey != cfg.polkaKey {
+		respondWithError(w, http.StatusUnauthorized, "Invalid API Key")
 		return
 	}
 

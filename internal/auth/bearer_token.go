@@ -13,5 +13,9 @@ func GetBearerToken(headers http.Header) (string, error) {
 	}
 	tknstrng := strings.Split(auth, " ")
 
+	if tknstrng[0] != "Bearer" {
+		return "No bearer token", fmt.Errorf("Error")
+	}
+
 	return tknstrng[1], nil
 }
