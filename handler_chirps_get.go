@@ -9,27 +9,50 @@ import (
 
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
-	chirps, err := cfg.db.GetAllChirps(r.Context())
-	if err != nil {
-		respondWithError(w, 500, err.Error())
-		return
-	}
-
 	arr := []Chirp{}
-	for _, chirp := range chirps {
+	s := r.URL.Query().Get("author_id")
+	log.Printf("Query: %s\n", s)
+	if s == "" {
+		chirps, err := cfg.db.GetAllChirps(r.Context())
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		for _, chirp := range chirps {
 
-		arr = append(arr, Chirp{
-			ID:        chirp.ID,
-			CreatedAt: chirp.CreatedAt,
-			UpdatedAt: chirp.UpdatedAt,
-			Body:      chirp.Body,
-			UserId:    chirp.UserID,
-		})
+			arr = append(arr, Chirp{
+				ID:        chirp.ID,
+				CreatedAt: chirp.CreatedAt,
+				UpdatedAt: chirp.UpdatedAt,
+				Body:      chirp.Body,
+				UserId:    chirp.UserID,
+			})
+		}
 
+	} else {
+		userID, err := uuid.Parse(s)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		chirps, err := cfg.db.GetChirpsFromUser(r.Context(), userID)
+		if err != nil {
+			respondWithError(w, 500, err.Error())
+			return
+		}
+		for _, chirp := range chirps {
+
+			arr = append(arr, Chirp{
+				ID:        chirp.ID,
+				CreatedAt: chirp.CreatedAt,
+				UpdatedAt: chirp.UpdatedAt,
+				Body:      chirp.Body,
+				UserId:    chirp.UserID,
+			})
+		}
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		respondWithJSON(w, 200, arr)
 	}
-	log.Printf("%s %s", r.Method, r.URL.Path)
-	respondWithJSON(w, 200, arr)
 }
 
 func (cfg *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
