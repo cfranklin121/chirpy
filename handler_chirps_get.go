@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/google/uuid"
 )
@@ -10,9 +11,8 @@ import (
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	arr := []Chirp{}
-	s := r.URL.Query().Get("author_id")
-	log.Printf("Query: %s\n", s)
-	if s == "" {
+	author := r.URL.Query().Get("author_id")
+	if author == "" {
 		chirps, err := cfg.db.GetAllChirps(r.Context())
 		if err != nil {
 			respondWithError(w, 500, err.Error())
@@ -30,7 +30,7 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
 		}
 
 	} else {
-		userID, err := uuid.Parse(s)
+		userID, err := uuid.Parse(author)
 		if err != nil {
 			respondWithError(w, 500, err.Error())
 			return
@@ -50,9 +50,20 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
 				UserId:    chirp.UserID,
 			})
 		}
-		log.Printf("%s %s", r.Method, r.URL.Path)
-		respondWithJSON(w, 200, arr)
 	}
+	sortQuery := r.URL.Query().Get("sort")
+	if sortQuery == "asc" {
+		slices.SortFunc(arr, func(a, b Chirp) int {
+			return a.CreatedAt.Compare(b.CreatedAt)
+		})
+	} else if sortQuery == "desc" {
+		slices.SortFunc(arr, func(a, b Chirp) int {
+			return b.CreatedAt.Compare(a.CreatedAt)
+		})
+	}
+	log.Printf("%s %s", r.Method, r.URL.Path)
+	respondWithJSON(w, 200, arr)
+
 }
 
 func (cfg *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
